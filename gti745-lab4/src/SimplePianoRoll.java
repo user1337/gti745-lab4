@@ -1,13 +1,22 @@
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
+import java.util.Arrays;
+import java.util.Date;
 import java.awt.Container;
 import java.awt.Component;
 import java.awt.Graphics;
 // import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.Dimension;
-
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -16,6 +25,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JMenuBar;
@@ -31,7 +42,7 @@ import javax.swing.BoxLayout;
 import javax.swing.Box;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
-
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Synthesizer;
 import javax.sound.midi.MidiChannel;
@@ -71,6 +82,7 @@ class Score {
 	public static final int midiNoteNumberOfLowestPitch = 21;
 	public int numBeats = 128;
 	public boolean [][] grid;
+	public int [][] time;
 
 	public static final int numPitchesInOctave = 12;
 	public String [] namesOfPitchClasses;
@@ -79,6 +91,7 @@ class Score {
 
 	public Score() {
 		grid = new boolean[ numBeats ][ numPitches ];
+		time = new int[ numBeats ][ numPitches ];
 
 		namesOfPitchClasses = new String[ numPitchesInOctave ];
 		namesOfPitchClasses[ 0] = "C";
@@ -217,7 +230,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 	boolean threadSuspended;
 
 	int currentBeat = 0;
-
+	public int sleepIntervalInMilliseconds = 150;
 	public static final int RADIAL_MENU_PLAY = 0;
 	public static final int RADIAL_MENU_STOP = 1;
 	public static final int RADIAL_MENU_DRAW = 2;
@@ -228,9 +241,15 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 	public static final int CONTROL_MENU_TEMPO = 2;
 	public static final int CONTROL_MENU_TOTAL_DURATION = 3;
 	public static final int CONTROL_MENU_TRANSPOSE = 4;
+	
+	public static final int BEAT_MENU_BLANCHE = 0;
+	public static final int BEAT_MENU_RONDE = 1;
+	public static final int BEAT_MENU_CROCHE = 2;
+	public static final int BEAT_MENU_DOUBLE_CROCHE = 3;
 
 	RadialMenuWidget radialMenu = new RadialMenuWidget();
 	ControlMenuWidget controlMenu = new ControlMenuWidget();
+	RadialMenuWidget beatMenu = new RadialMenuWidget();
 
 	int mouse_x, mouse_y, old_mouse_x, old_mouse_y;
 
@@ -259,9 +278,114 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		controlMenu.setItemLabelAndID( 3, "Zoom", CONTROL_MENU_ZOOM );
 		controlMenu.setItemLabelAndID( 5, "Total Duration", CONTROL_MENU_TOTAL_DURATION );
 		controlMenu.setItemLabelAndID( 7, "Transpose", CONTROL_MENU_TRANSPOSE );
+		
+		beatMenu.setItemLabelAndID( RadialMenuWidget.CENTRAL_ITEM, "",            RADIAL_MENU_STOP );
+		beatMenu.setItemLabelAndID( 1,                             "Croche",  BEAT_MENU_CROCHE );
+		beatMenu.setItemLabelAndID( 3,                             "Ronde",  BEAT_MENU_RONDE );
+		beatMenu.setItemLabelAndID( 5,                             "Double croche",  BEAT_MENU_DOUBLE_CROCHE );
+		beatMenu.setItemLabelAndID( 7,                             "Blanche", BEAT_MENU_BLANCHE );
+		
+		
 
 		gw.frame( score.getBoundingRectangle(), false );
 	}
+	
+	public void saveMusic()
+	{		
+		BufferedWriter bufferedWriter = null;
+		StringBuffer sb = new StringBuffer();
+		
+		try {
+			JFileChooser fileChooser = new JFileChooser();
+			FileNameExtensionFilter filter = new FileNameExtensionFilter("Beatz", "beatz");
+			fileChooser.setFileFilter(filter);
+			int result = fileChooser.showSaveDialog(this);
+			
+			if(result == JFileChooser.APPROVE_OPTION) {
+				
+				String fileName = fileChooser.getSelectedFile().getAbsolutePath();
+				
+				if(!fileName.endsWith(".beatz")) {
+					fileName += ".beatz";
+				}
+				
+				bufferedWriter = new BufferedWriter(new FileWriter(fileName));
+				
+				for (int x = 0; x < score.time.length; x++) {
+	
+					for (int y = 0; y < score.time[x].length; y++) {
+	
+						sb.append(score.time[x][y] + ";");			    
+					}
+					
+					bufferedWriter.write(sb.toString());
+					bufferedWriter.newLine();
+					sb = new StringBuffer();
+	
+				}
+				
+				bufferedWriter.flush();  
+				bufferedWriter.close(); 
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if(bufferedWriter != null) {
+				try {
+					bufferedWriter.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public void loadMusic()
+	{
+		JFileChooser fileChooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Beatz", "beatz");
+		fileChooser.setFileFilter(filter);
+		int result = fileChooser.showOpenDialog(this);
+
+		if (result == JFileChooser.APPROVE_OPTION) {
+			BufferedReader bufferedReader = null;
+			String line;
+			
+			try {
+				bufferedReader = new BufferedReader( new FileReader(fileChooser.getSelectedFile()));
+				int x = 0;
+
+				while ((line = bufferedReader.readLine()) != null) {
+
+					String[] temps = line.split(";");
+
+					for (int i = 0; i < temps.length; i++) {
+						score.time[x][i] = Integer.parseInt(temps[i]);
+						if(temps[i].equals("0"))
+							score.grid[x][i] = false;
+						else
+							score.grid[x][i] = true;
+					}
+					x++;
+				}
+				
+				repaint();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if(bufferedReader != null) {
+					try {
+						bufferedReader.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+
+		}
+	}
+	
 	public Dimension getPreferredSize() {
 		return new Dimension( Constant.INITIAL_WINDOW_WIDTH, Constant.INITIAL_WINDOW_HEIGHT );
 	}
@@ -297,10 +421,12 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 
 		if ( radialMenu.isVisible() )
 			radialMenu.draw( gw );
+		if( beatMenu.isVisible() )
+			beatMenu.draw( gw );
 		if ( controlMenu.isVisible() )
 			controlMenu.draw( gw );
 
-		if ( ! radialMenu.isVisible() && ! controlMenu.isVisible() ) {
+		if ( ! radialMenu.isVisible() && !beatMenu.isVisible() && ! controlMenu.isVisible() ) {
 			// draw datatip
 			if ( midiNoteNumberOfMouseCurser >= 0 && beatOfMouseCursor >= 0 ) {
 				final int margin = 5;
@@ -347,7 +473,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 	public void mouseEntered( MouseEvent e ) { }
 	public void mouseExited( MouseEvent e ) { }
 
-	private void paint( int mouse_x, int mouse_y ) {
+	private void paint( int mouse_x, int mouse_y, int beat) {
 		int newBeatOfMouseCursor = score.getBeatForMouseX( gw, mouse_x );
 		int newMidiNoteNumberOfMouseCurser = score.getMidiNoteNumberForMouseY( gw, mouse_y );
 		if (
@@ -360,17 +486,26 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		}
 
 		if ( beatOfMouseCursor >= 0 && midiNoteNumberOfMouseCurser >= 0 ) {
-			if ( simplePianoRoll.dragMode == SimplePianoRoll.DM_DRAW_NOTES ) {
-				if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != true ) {
+			if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != true ) 
+			{
+				String s = score.namesOfPitchClasses[
+				                 					( midiNoteNumberOfMouseCurser - score.midiNoteNumberOfLowestPitch + score.pitchClassOfLowestPitch )
+				                 					% score.numPitchesInOctave
+				                 				];
+				if (Arrays.asList((simplePianoRoll.gammePermise)).contains(s))
+				{
 					score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = true;
+					score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = beat;
 					repaint();
 				}
+				
 			}
-			else if ( simplePianoRoll.dragMode == SimplePianoRoll.DM_ERASE_NOTES ) {
-				if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != false ) {
-					score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = false;
-					repaint();
-				}
+		}
+		else if ( simplePianoRoll.dragMode == SimplePianoRoll.DM_ERASE_NOTES ) {
+			if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != false ) {
+				score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = false;
+				score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = Constant.tempsNoire;
+				repaint();
 			}
 		}
 	}
@@ -398,7 +533,15 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 				return;
 		}
 		if ( SwingUtilities.isLeftMouseButton(e) ) {
-			paint( mouse_x, mouse_y );
+			paint( mouse_x, mouse_y, Constant.tempsNoire);
+		} else if(SwingUtilities.isRightMouseButton(e) || beatMenu.isVisible()) {
+			
+			int returnValue = beatMenu.pressEvent( mouse_x, mouse_y );
+			
+			if ( returnValue == CustomWidget.S_REDRAW )
+				repaint();
+			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
+				return;
 		}
 	}
 
@@ -443,6 +586,28 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 				repaint();
 			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
 				return;
+		}
+		
+		if ( beatMenu.isVisible() ) {
+			int returnValue = beatMenu.releaseEvent( mouse_x, mouse_y );
+
+			int itemID = beatMenu.getIDOfSelection();
+			if ( 0 <= itemID ) {
+				switch ( itemID ) {
+					case BEAT_MENU_BLANCHE:
+						paint( beatMenu.x0, beatMenu.y0, Constant.tempsBlanche );
+						break;
+					case BEAT_MENU_RONDE:
+						paint( beatMenu.x0, beatMenu.y0, Constant.tempsRonde );
+						break;
+					case BEAT_MENU_CROCHE:
+						paint( beatMenu.x0, beatMenu.y0, Constant.tempsCroche );
+						break;
+					case BEAT_MENU_DOUBLE_CROCHE:
+						paint( beatMenu.x0, beatMenu.y0, Constant.tempsDoubleCroche );
+						break;
+				}
+			}
 		}
 	}
 
@@ -525,6 +690,13 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
 				return;
 		}
+		if ( beatMenu.isVisible() ) {
+			int returnValue = beatMenu.dragEvent( mouse_x, mouse_y );
+			if ( returnValue == CustomWidget.S_REDRAW )
+				repaint();
+			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
+				return;
+		}
 		if ( controlMenu.isVisible() ) {
 			if ( controlMenu.isInMenuingMode() ) {
 				int returnValue = controlMenu.dragEvent( mouse_x, mouse_y );
@@ -542,6 +714,34 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 				case CONTROL_MENU_ZOOM:
 					gw.zoomIn( (float)Math.pow( Constant.zoomFactorPerPixelDragged, delta_x-delta_y ) );
 					break;
+				case CONTROL_MENU_TOTAL_DURATION:
+					// Changement #1
+					if(delta_x < 0) {
+						if(simplePianoRoll.canvas.score.numBeats > 0 && (simplePianoRoll.canvas.score.numBeats + delta_x) > 0) {
+							simplePianoRoll.canvas.score.numBeats += delta_x;
+							simplePianoRoll.canvas.score.grid = new boolean[simplePianoRoll.canvas.score.numBeats][simplePianoRoll.canvas.score.numPitches];
+							simplePianoRoll.canvas.score.time = new int[simplePianoRoll.canvas.score.numBeats][simplePianoRoll.canvas.score.numPitches];							
+						}
+					}
+					else {
+						if(simplePianoRoll.canvas.score.numBeats > 0) {
+							simplePianoRoll.canvas.score.numBeats += delta_x;
+							simplePianoRoll.canvas.score.grid = new boolean[simplePianoRoll.canvas.score.numBeats][simplePianoRoll.canvas.score.numPitches];
+							simplePianoRoll.canvas.score.time = new int[simplePianoRoll.canvas.score.numBeats][simplePianoRoll.canvas.score.numPitches];
+						}
+					}
+
+					break;
+				case CONTROL_MENU_TEMPO:
+					// Changement 3b
+					if (delta_y > 0)
+						sleepIntervalInMilliseconds += 10;
+					else if (sleepIntervalInMilliseconds > 10)
+						sleepIntervalInMilliseconds -= 10;
+					
+					simplePianoRoll.labelTempo.setText( "Tempo : " + Integer.toString(sleepIntervalInMilliseconds) + " ms");
+					
+					break;
 				default:
 					// TODO XXX
 					break;
@@ -550,7 +750,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 			}
 		}
 		else {
-			paint( mouse_x, mouse_y );
+			paint( mouse_x, mouse_y, Constant.tempsNoire);
 		}
 	}
 
@@ -575,7 +775,6 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 	}
 	public void run() {
 		try {
-			int sleepIntervalInMilliseconds = 150;
 			while (true) {
 
 				// Here's where the thread does some work
@@ -595,6 +794,10 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 								simplePianoRoll.midiChannels[0].noteOn( i+score.midiNoteNumberOfLowestPitch, Constant.midiVolume );
 						}
 					}
+					
+					if (controlMenu.isVisible() && controlMenu.getIDOfSelection() == CONTROL_MENU_TEMPO  )
+						//simplePianoRoll.midiChannels[0].noteOn(50,250);
+						simplePianoRoll.midiChannels[15].noteOn(28,100);
 				}
 				repaint();
 
@@ -606,6 +809,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 						}
 					}
 				}
+				
 				thread.sleep( sleepIntervalInMilliseconds );  // interval given in milliseconds
 			}
 		}
@@ -620,6 +824,7 @@ public class SimplePianoRoll implements ActionListener {
 
 	JFrame frame;
 	Container toolPanel;
+	Container comboPanel;
 	MyCanvas canvas;
 
 	Synthesizer synthesizer;
@@ -632,6 +837,10 @@ public class SimplePianoRoll implements ActionListener {
 	JMenuItem frameAllMenuItem;
 	JCheckBoxMenuItem autoFrameMenuItem;
 	JMenuItem aboutMenuItem;
+	JMenuItem generateMusicMenuItem;
+	JMenuItem saveMenuItem;
+	JMenuItem loadMenuItem;
+	
 
 	JCheckBox playCheckBox;
 	JCheckBox loopWhenPlayingCheckBox;
@@ -658,6 +867,18 @@ public class SimplePianoRoll implements ActionListener {
 	public static final int RM_PLAY_NOTE_UPON_ROLLOVER = 1;
 	public static final int RM_PLAY_NOTE_UPON_ROLLOVER_IF_SPECIAL_KEY_HELD_DOWN = 2;
 	public int rolloverMode = RM_DO_NOTHING_UPON_ROLLOVER;
+	
+	String[] gammePentatonique = {"C","D","E","G","A"};
+	String[] gammemajeurDeDo = {"C","D","E","G","A", "F", "B"};
+	String[] gamme1 = {"C","D","E","F#","A", "G", "B"};
+	String[] gamme2 = {"C","D","E","G","A", "F", "A#"};
+	String[] gammeComplete = {"A","B","C","D","E", "F", "G","A#","B#","C#","D#","E#", "F#", "G#"};
+	String[] gammePermise;
+	
+	JLabel labelTempo = new JLabel("Tempo : 150 ms" );
+	
+	String[] scaleString = { "Majeur de do", "Pentatonique", "1", "2", "Tous"};
+	JComboBox scaleList = new JComboBox(scaleString);
 
 	public void setMusicPlaying( boolean flag ) {
 		isMusicPlaying = flag;
@@ -764,6 +985,44 @@ public class SimplePianoRoll implements ActionListener {
 		else if ( source == playNoteUponRolloverIfSpecialKeyHeldDownRadioButton ) {
 			rolloverMode = RM_PLAY_NOTE_UPON_ROLLOVER_IF_SPECIAL_KEY_HELD_DOWN;
 		}
+		else if( source == generateMusicMenuItem ) {
+			generateRandomPiece();
+		}
+		else if( source == saveMenuItem ) {
+			canvas.saveMusic();
+		}
+		else if( source == loadMenuItem ) {
+			canvas.loadMusic();
+		}
+		else if ( source == scaleList ) {
+			if (scaleList.getSelectedIndex() == 1)
+				gammePermise = gammePentatonique;
+			else if (scaleList.getSelectedIndex() == 0)	
+				gammePermise = gammemajeurDeDo;
+			else if (scaleList.getSelectedIndex() == 2)	
+				gammePermise = gamme1;
+			else if (scaleList.getSelectedIndex() == 3)	
+				gammePermise = gamme2;
+			else if (scaleList.getSelectedIndex() == 4)	
+				gammePermise = gammeComplete;
+		}
+	}
+	
+	public void generateRandomPiece()
+	{		
+		for ( int y = 60; y < canvas.score.numPitches; ++y )
+			for ( int x = 0; x < canvas.score.numBeats; ++x )
+			{
+				String s = canvas.score.namesOfPitchClasses[
+				                 					( y - Score.midiNoteNumberOfLowestPitch + Score.pitchClassOfLowestPitch )
+				                 					% Score.numPitchesInOctave];
+				if (Math.random() > 0.95f && Arrays.asList((gammePermise)).contains(s)) {
+					canvas.score.grid[x][y-21] = true;
+					canvas.score.time[x][y-21] = Constant.tempsNoire;
+				}
+					
+			}
+		canvas.repaint();
 	}
 
 
@@ -787,7 +1046,10 @@ public class SimplePianoRoll implements ActionListener {
 				"Warning: UI is not being created in the Event Dispatch Thread!");
 			assert false;
 		}
+		
 
+
+		comboPanel = new JPanel();
 		frame = new JFrame( applicationName );
 		frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 
@@ -802,6 +1064,20 @@ public class SimplePianoRoll implements ActionListener {
 				quitMenuItem = new JMenuItem("Quit");
 				quitMenuItem.addActionListener(this);
 				menu.add(quitMenuItem);
+				
+				saveMenuItem = new JMenuItem("Save");
+				saveMenuItem.addActionListener(this);
+				menu.add(saveMenuItem);
+				
+				loadMenuItem = new JMenuItem("Load");
+				loadMenuItem.addActionListener(this);
+				menu.add(loadMenuItem);
+				menu.addSeparator();
+				
+				generateMusicMenuItem = new JMenuItem("Generate");
+				generateMusicMenuItem.addActionListener(this);
+				menu.add(generateMusicMenuItem);
+				menu.addSeparator();
 			menuBar.add(menu);
 			menu = new JMenu("View");
 				showToolsMenuItem = new JCheckBoxMenuItem("Show Options");
@@ -841,6 +1117,7 @@ public class SimplePianoRoll implements ActionListener {
 		pane.setLayout( new BoxLayout( pane, BoxLayout.X_AXIS ) );
 		pane.add( toolPanel );
 		pane.add( canvas );
+		pane.add( comboPanel );
 
 		playCheckBox = new JCheckBox("Play", isMusicPlaying );
 		playCheckBox.setAlignmentX( Component.LEFT_ALIGNMENT );
@@ -897,6 +1174,12 @@ public class SimplePianoRoll implements ActionListener {
 				playNoteUponRolloverIfSpecialKeyHeldDownRadioButton.setSelected(true);
 			toolPanel.add( playNoteUponRolloverIfSpecialKeyHeldDownRadioButton );
 			rolloverModeButtonGroup.add( playNoteUponRolloverIfSpecialKeyHeldDownRadioButton );
+			
+			comboPanel.add( labelTempo );
+			
+			scaleList.addActionListener(this);			
+			scaleList.setSelectedIndex(4);
+			comboPanel.add(scaleList);
 
 		frame.pack();
 		frame.setVisible( true );

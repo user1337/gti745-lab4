@@ -17,5 +17,11 @@ public class Constant {
 	public static final boolean USE_SOUND = true;
 
 	public static final int midiVolume = 127;
+	
+	public static final int tempsDoubleCroche = 25;
+	public static final int tempsCroche = 50;
+	public static final int tempsNoire = 100;
+	public static final int tempsBlanche = 200;
+	public static final int tempsRonde = 400;
 }
 
