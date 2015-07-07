@@ -250,6 +250,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 	RadialMenuWidget radialMenu = new RadialMenuWidget();
 	ControlMenuWidget controlMenu = new ControlMenuWidget();
 	RadialMenuWidget beatMenu = new RadialMenuWidget();
+	FlowMenuWidget flowMenu = new FlowMenuWidget();
 
 	int mouse_x, mouse_y, old_mouse_x, old_mouse_y;
 
@@ -285,6 +286,12 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		beatMenu.setItemLabelAndID( 5,                             "Double croche",  BEAT_MENU_DOUBLE_CROCHE );
 		beatMenu.setItemLabelAndID( 7,                             "Blanche", BEAT_MENU_BLANCHE );
 		
+		
+		flowMenu.setItemLabelAndID( RadialMenuWidget.CENTRAL_ITEM, "",            RADIAL_MENU_STOP );
+		flowMenu.setItemLabelAndID( 1,                             "A",  RADIAL_MENU_STOP );
+		flowMenu.setItemLabelAndID( 3,                             "B",  RADIAL_MENU_DRAW );
+		flowMenu.setItemLabelAndID( 5,                             "C",  RADIAL_MENU_PLAY );
+		flowMenu.setItemLabelAndID( 7,                             "D", RADIAL_MENU_ERASE );
 		
 
 		gw.frame( score.getBoundingRectangle(), false );
@@ -425,6 +432,8 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 			beatMenu.draw( gw );
 		if ( controlMenu.isVisible() )
 			controlMenu.draw( gw );
+		if ( flowMenu.isVisible() )
+			flowMenu.draw(gw);
 
 		if ( ! radialMenu.isVisible() && !beatMenu.isVisible() && ! controlMenu.isVisible() ) {
 			// draw datatip
@@ -458,6 +467,16 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 			)
 				playNote( midiNoteNumberOfMouseCurser );
 		}
+		
+		// Changement #6
+		// Detection que la lettre "Q" du clavier a ete enfonce par l'utilisateur
+		if (e.getKeyCode() == KeyEvent.VK_Q) {
+			int returnValue = flowMenu.pressEvent( mouse_x, mouse_y );
+			if ( returnValue == 2 )
+				repaint();
+			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
+				return;
+		}
 	}
 	public void keyReleased( KeyEvent e ) {
 		if ( e.getKeyCode() == KeyEvent.VK_CONTROL ) {
@@ -466,6 +485,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		}
 	}
 	public void keyTyped( KeyEvent e ) {
+		
 	}
 
 
