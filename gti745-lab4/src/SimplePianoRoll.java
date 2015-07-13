@@ -289,9 +289,21 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		
 		flowMenu.setItemLabelAndID( RadialMenuWidget.CENTRAL_ITEM, "",            RADIAL_MENU_STOP );
 		flowMenu.setItemLabelAndID( 1,                             "A",  RADIAL_MENU_STOP );
-		flowMenu.setItemLabelAndID( 3,                             "B",  RADIAL_MENU_DRAW );
-		flowMenu.setItemLabelAndID( 5,                             "C",  RADIAL_MENU_PLAY );
-		flowMenu.setItemLabelAndID( 7,                             "D", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 2,                             "B",  RADIAL_MENU_DRAW );
+		flowMenu.setItemLabelAndID( 3,                             "C",  RADIAL_MENU_PLAY );
+		flowMenu.setItemLabelAndID( 4,                             "D", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 5,                             "E", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 6,                             "F", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 7,                             "G", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 8,                             "H", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 9,                             "I", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 10,                            "J", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 11,                            "K", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 12,                            "L", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 13,                            "M", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 14,                            "N", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 15,                            "O", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( 16,                            "P", RADIAL_MENU_ERASE );
 		
 
 		gw.frame( score.getBoundingRectangle(), false );
@@ -435,7 +447,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		if ( flowMenu.isVisible() )
 			flowMenu.draw(gw);
 
-		if ( ! radialMenu.isVisible() && !beatMenu.isVisible() && ! controlMenu.isVisible() ) {
+		if ( ! radialMenu.isVisible() && !beatMenu.isVisible() && ! controlMenu.isVisible() && ! flowMenu.isVisible() ) { //HSP
 			// draw datatip
 			if ( midiNoteNumberOfMouseCurser >= 0 && beatOfMouseCursor >= 0 ) {
 				final int margin = 5;
@@ -473,7 +485,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		if (e.getKeyCode() == KeyEvent.VK_Q) {
 			int returnValue = flowMenu.pressEvent( mouse_x, mouse_y );
 			if ( returnValue == 2 )
-				repaint();
+				//repaint();
 			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
 				return;
 		}
@@ -552,6 +564,15 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
 				return;
 		}
+		//HSP
+		if ( flowMenu.isVisible() ) {
+			int returnValue = flowMenu.pressEvent( mouse_x, mouse_y );
+			if ( returnValue == CustomWidget.S_REDRAW )
+				repaint();
+			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
+				return;
+		}
+		//HSP
 		if ( SwingUtilities.isLeftMouseButton(e) ) {
 			paint( mouse_x, mouse_y, Constant.tempsNoire);
 		} else if(SwingUtilities.isRightMouseButton(e) || beatMenu.isVisible()) {
@@ -629,6 +650,12 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 				}
 			}
 		}
+		
+		//HSP
+		if (flowMenu.isVisible()) {
+			int returnValue = flowMenu.releaseEvent( mouse_x, mouse_y );
+		}
+		//HSP
 	}
 
 	private void playNote( int midiNoteNumber ) {
@@ -661,6 +688,14 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		}
 		if ( controlMenu.isVisible() ) {
 			int returnValue = controlMenu.moveEvent( mouse_x, mouse_y );
+			if ( returnValue == CustomWidget.S_REDRAW )
+				repaint();
+			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
+				return;
+		}
+		//HSP
+		if ( flowMenu.isVisible() ) {
+			int returnValue = flowMenu.moveEvent( mouse_x, mouse_y );
 			if ( returnValue == CustomWidget.S_REDRAW )
 				repaint();
 			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
@@ -703,6 +738,14 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 
 		isControlKeyDown = e.isControlDown();
 
+		//HSP
+		if ( flowMenu.isVisible() ) {
+			int returnValue = flowMenu.dragEvent( mouse_x, mouse_y );
+			if ( returnValue == CustomWidget.S_REDRAW )
+				repaint();
+			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
+				return;
+		}
 		if ( radialMenu.isVisible() ) {
 			int returnValue = radialMenu.dragEvent( mouse_x, mouse_y );
 			if ( returnValue == CustomWidget.S_REDRAW )

@@ -9,7 +9,7 @@ public class FlowMenuWidget extends CustomWidget {
 	// with 1 for North, 2 for North-East, ..., 8 for North-West).
 
 	public static final int CENTRAL_ITEM = 0;
-	private static final int N = 8;
+	private static final int N = 16; // was 8
 
 	// Each menu item has a corresponding ``label'' string.
 	// If a given label string is empty (""),
@@ -68,6 +68,14 @@ public class FlowMenuWidget extends CustomWidget {
 		return S_REDRAW;
 	}
 	
+	public int releaseEvent( int x, int y ) {
+		if ( isVisible ) {
+			isVisible = false;
+			return S_REDRAW;
+		}
+		return S_EVENT_NOT_CONSUMED;
+	}
+	
 	public void setItemLabelAndID( int index, String s, int id ) {
 		if ( 0 <= index && index <= N ) {
 			label[index] = s;
@@ -117,6 +125,13 @@ public class FlowMenuWidget extends CustomWidget {
 			float radiusPrime = radius / (float)Math.sqrt(2.0f);
 
 			for ( int i = 1; i <= N; ++i ) {
+				
+				//HSP
+				if (i == 9) {
+					radius *= 2;
+					radiusPrime *= 2;
+				}
+				
 				if ( label[i].length() > 0 && isEnabled[i] ) {
 					float theta = (float)( (i-1)*Math.PI/4 - Math.PI/2 );
 					// compute center of ith label
