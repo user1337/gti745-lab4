@@ -114,8 +114,15 @@ public class FlowMenuWidget extends CustomWidget {
 			if ( theta > 2*Math.PI ) theta -= 2*(float)Math.PI;
 
 			newlySelectedItem = 1 + (int)( theta / ((float)Math.PI / 4) );
+			
+			//HSP
+			int secondRadius = 2*(2 * ((textHeight + 2*marginAroundText) + marginBetweenItems )); // valeur du rayon original fois 2
+			if ( radius > secondRadius ) {
+				newlySelectedItem += 8;
+			}
+						
 			assert 1 <= newlySelectedItem && newlySelectedItem <= N;
-
+			
 			if ( label[ newlySelectedItem ].length() == 0 || ! isEnabled[ newlySelectedItem ] ) {
 				// loop over all items, looking for the closest one
 				float minDifference = 4*(float)Math.PI;
@@ -157,6 +164,10 @@ public class FlowMenuWidget extends CustomWidget {
 	
 	// For internal use only.
 	private boolean isItemHilited( int index ) {
+		int i;
+		if (index == 9) {
+			i = 1;
+		}
 		assert 0 <= index && index <= N;
 		return itemID[ index ] == itemID[ selectedItem ];
 	}
@@ -262,6 +273,7 @@ public class FlowMenuWidget extends CustomWidget {
 							// item is too far to the right; shift it to the left
 							x = x0 - radiusOfNeutralZone - marginBetweenItems - widthOfItem/2;
 					}
+					
 
 					if ( isItemHilited( i ) )
 						gw.setColor( foregroundColor, alpha );

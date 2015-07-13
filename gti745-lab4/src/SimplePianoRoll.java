@@ -247,8 +247,27 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 	public static final int BEAT_MENU_CROCHE = 2;
 	public static final int BEAT_MENU_DOUBLE_CROCHE = 3;
 	
+	
 	public static final int FLOW_MENU_ZOOM = 1;
 	public static final int FLOW_MENU_ZOOM_ITEMS = 9;
+	
+	public static final int FLOW_MENU_TEMPO = 2;
+	public static final int FLOW_MENU_TEMPO_ITEMS = 10;
+	
+	public static final int FLOW_MENU_DRAW = 3;
+	public static final int FLOW_MENU_DRAW_ITEMS = 11;
+	
+	public static final int FLOW_MENU_TRANSPOSE = 4;
+	public static final int FLOW_MENU_TRANSPOSE_ITEMS = 12;
+	
+	public static final int FLOW_MENU_MUSIC = 5;
+	public static final int FLOW_MENU_MUSIC_ITEMS = 13;
+	
+	public static final int FLOW_MENU_TOTAL_DURATION = 6;
+	public static final int FLOW_MENU_TOTAL_DURATION_ITEMS = 14;
+	
+	public static final int FLOW_MENU_PAN = 7;
+	public static final int FLOW_MENU_PAN_ITEMS = 15;
 	
 
 	RadialMenuWidget radialMenu = new RadialMenuWidget();
@@ -291,23 +310,23 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		beatMenu.setItemLabelAndID( 7,                             "Blanche", BEAT_MENU_BLANCHE );
 		
 		
-		flowMenu.setItemLabelAndID( RadialMenuWidget.CENTRAL_ITEM, "",            RADIAL_MENU_STOP );
-		flowMenu.setItemLabelAndID( 1,                             "Zoom",  RADIAL_MENU_STOP );
-		flowMenu.setItemLabelAndID( 2,                             "Tempo",  RADIAL_MENU_DRAW );
-		flowMenu.setItemLabelAndID( 3,                             "Draw",  RADIAL_MENU_PLAY );
-		flowMenu.setItemLabelAndID( 4,                             "Transpose", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 5,                             "Music", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 6,                             "Total duration", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 7,                             "Pan", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 8,                             "", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 9,                             "+/-", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 10,                            "J", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 11,                            "K", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 12,                            "L", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 13,                            "M", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 14,                            "N", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 15,                            "O", RADIAL_MENU_ERASE );
-		flowMenu.setItemLabelAndID( 16,                            "P", RADIAL_MENU_ERASE );
+		flowMenu.setItemLabelAndID( RadialMenuWidget.CENTRAL_ITEM, "",            0 );
+		flowMenu.setItemLabelAndID( 1,                             "Zoom",  1 );
+		flowMenu.setItemLabelAndID( 2,                             "Tempo",  2 );
+		flowMenu.setItemLabelAndID( 3,                             "Draw",  3 );
+		flowMenu.setItemLabelAndID( 4,                             "Transpose", 4 );
+		flowMenu.setItemLabelAndID( 5,                             "Music", 5 );
+		flowMenu.setItemLabelAndID( 6,                             "Duration", 6 );
+		flowMenu.setItemLabelAndID( 7,                             "Pan", 7 );
+		flowMenu.setItemLabelAndID( 8,                             "", 8 );
+		flowMenu.setItemLabelAndID( 9,                             "+/-", 9 );
+		flowMenu.setItemLabelAndID( 10,                            "+/-", 10 );
+		flowMenu.setItemLabelAndID( 11,                            "+/-", 11 );
+		flowMenu.setItemLabelAndID( 12,                            "+/-", 12 );
+		flowMenu.setItemLabelAndID( 13,                            "+/-", 13 );
+		flowMenu.setItemLabelAndID( 14,                            "+/-", 14 );
+		flowMenu.setItemLabelAndID( 15,                            "+/-", 15 );
+		flowMenu.setItemLabelAndID( 16,                            "+/-", 16 );
 		
 
 		gw.frame( score.getBoundingRectangle(), false );
@@ -449,7 +468,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		if ( flowMenu.isVisible() )
 			flowMenu.draw(gw);
 
-		if ( ! radialMenu.isVisible() && ! controlMenu.isVisible() && ! flowMenu.isVisible() ) { //HSP
+		if ( ! radialMenu.isVisible() && ! controlMenu.isVisible() && ! flowMenu.isVisible() ) {
 			// draw datatip
 			if ( midiNoteNumberOfMouseCurser >= 0 && beatOfMouseCursor >= 0 ) {
 				final int margin = 5;
@@ -725,11 +744,25 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 				
 				switch ( flowMenu.getIDOfSelection() ) {
 				case FLOW_MENU_ZOOM:
-					System.out.println("allo");
-					flowMenu.setItemEnabled(FLOW_MENU_ZOOM_ITEMS, true);
+					enableItem(FLOW_MENU_ZOOM_ITEMS);
 					break;
-				default:
-					flowMenu.setItemEnabled(FLOW_MENU_ZOOM_ITEMS, false);
+				case FLOW_MENU_TEMPO:
+					enableItem(FLOW_MENU_TEMPO_ITEMS);
+					break;
+				case FLOW_MENU_DRAW:
+					enableItem(FLOW_MENU_DRAW_ITEMS);
+					break;
+				case FLOW_MENU_TRANSPOSE:
+					enableItem(FLOW_MENU_TRANSPOSE_ITEMS);
+					break;
+				case FLOW_MENU_MUSIC:
+					enableItem(FLOW_MENU_MUSIC_ITEMS);
+					break;
+				case FLOW_MENU_TOTAL_DURATION:
+					enableItem(FLOW_MENU_TOTAL_DURATION_ITEMS);
+				case FLOW_MENU_PAN:
+					enableItem(FLOW_MENU_PAN_ITEMS);
+					break;
 				}
 				
 				repaint();
@@ -795,6 +828,18 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		}
 	}
 
+	private void enableItem(int index) {
+		
+		// On desactive tout les items du second niveau
+		for (int i=9; i<=16; i++) {
+			flowMenu.setItemEnabled(i, false);
+		}
+		
+		// On active l'item du second niveau voulu.
+		flowMenu.setItemEnabled(index, true);
+		
+	}
+	
 	public void startBackgroundWork() {
 		currentBeat = 0;
 		if ( thread == null ) {
