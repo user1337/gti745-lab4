@@ -52,8 +52,15 @@ public class FlowMenuWidget extends CustomWidget {
 	public FlowMenuWidget() {
 		for (int i = 0; i <= N; ++i) {
 			label[i] = new String("");
-			isEnabled[i] = true;
-
+			
+			// On desactive les items du second niveau.
+			if (i < 8) {
+				isEnabled[i] = true;
+			} else {
+				isEnabled[i] = false;
+			}
+			
+			
 			// Give every item a distinct ID.
 			itemID[i] = i;
 		}
@@ -76,6 +83,67 @@ public class FlowMenuWidget extends CustomWidget {
 		return S_EVENT_NOT_CONSUMED;
 	}
 	
+	public int dragEvent( int x, int y ) {
+		if ( ! isVisible )
+			return S_EVENT_NOT_CONSUMED;
+
+		mouse_x = x;
+		mouse_y = y;
+		int dx = mouse_x - x0;
+		int dy = mouse_y - y0;
+		float radius = (float)Math.sqrt( dx*dx + dy*dy );
+
+		int newlySelectedItem = CENTRAL_ITEM;
+
+		if ( radius > radiusOfNeutralZone ) {
+			float theta = (float)Math.asin( dy / radius );
+			if ( dx < 0 ) theta = (float)Math.PI - theta;
+
+			// theta is now relative to the +x axis, which points right,
+			// and increases clockwise (because y+ points down).
+			// If we added pi/2 radians, it would be relative to the -y
+			// axis (which points up).
+			// However, what we really want is for it to be relative to
+			// the radial line that divides item 1 from item 8.
+			// So we must add pi/2 + pi/8 radians.
+
+			theta += 5 * (float)Math.PI / 8;
+
+			// Ensure it's in [0,2*pi]
+			assert theta > 0;
+			if ( theta > 2*Math.PI ) theta -= 2*(float)Math.PI;
+
+			newlySelectedItem = 1 + (int)( theta / ((float)Math.PI / 4) );
+			assert 1 <= newlySelectedItem && newlySelectedItem <= N;
+
+			if ( label[ newlySelectedItem ].length() == 0 || ! isEnabled[ newlySelectedItem ] ) {
+				// loop over all items, looking for the closest one
+				float minDifference = 4*(float)Math.PI;
+				int itemWithMinDifference = CENTRAL_ITEM;
+				for ( int candidateItem = 1; candidateItem <= N; ++candidateItem ) {
+					if ( label[ candidateItem ].length() > 0 && isEnabled[ candidateItem ] ) {
+						float candidateItemTheta = (candidateItem-1) * ((float)Math.PI/4) + (float)Math.PI/8;
+						float candidateDifference = Math.abs( candidateItemTheta - theta );
+						if ( candidateDifference > Math.PI )
+							candidateDifference = 2*(float)Math.PI - candidateDifference;
+						if ( candidateDifference < minDifference ) {
+							minDifference = candidateDifference;
+							itemWithMinDifference = candidateItem;
+						}
+					}
+				}
+				newlySelectedItem = itemWithMinDifference;
+			}
+		}
+
+		if ( newlySelectedItem != selectedItem ) {
+			selectedItem = newlySelectedItem;
+			return S_REDRAW;
+		}
+
+		return S_DONT_REDRAW;
+	}
+	
 	public void setItemLabelAndID( int index, String s, int id ) {
 		if ( 0 <= index && index <= N ) {
 			label[index] = s;
@@ -83,10 +151,28 @@ public class FlowMenuWidget extends CustomWidget {
 		}
 	}
 	
+	public void setItemEnabled(int index, boolean enabled) {
+		isEnabled[index] = enabled;
+	}
+	
 	// For internal use only.
 	private boolean isItemHilited( int index ) {
 		assert 0 <= index && index <= N;
 		return itemID[ index ] == itemID[ selectedItem ];
+	}
+	
+	// The client typically calls this after an interaction with the menu
+	// is complete, to find out what the user selected.
+	// Returns an index in the range [CENTRAL_ITEM,N]
+	public int getSelection() { return selectedItem; }
+
+	public int getIDOfSelection() { return getItemID( selectedItem ); }
+	
+	public int getItemID( int index ) {
+		if ( 0 <= index && index <= N ) {
+			return itemID[index];
+		}
+		return -1;
 	}
 	
 	protected void drawMenuItems(
