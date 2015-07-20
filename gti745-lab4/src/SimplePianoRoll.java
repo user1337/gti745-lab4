@@ -204,8 +204,39 @@ class Score {
 		gw.setColor( 0, 0, 0 );
 		for ( int y = 0; y < numPitches; ++y ) {
 			for ( int x = 0; x < numBeats; ++x ) {
-				if ( grid[x][y] )
-					gw.fillRect( x+0.3f, -y-0.7f, 0.4f, 0.4f );
+				// Effet visuel
+				if ( grid[x][y] ) {
+					float width = 0.4f;
+					float ratio  = 3.5f;
+					gw.setColor(0, 0, 0);
+					
+					switch(time[x][y]) {
+						
+						case Constant.tempsRonde:
+							width = 1.2f;						
+							break;		
+							
+						case Constant.tempsBlanche:
+							width = 0.8f;
+							gw.setColor(1f, 1f, 1f);
+							break;
+							
+						case Constant.tempsNoire:
+							width = 0.4f;				
+							break;
+							
+						case Constant.tempsCroche:
+							width = 0.2f;
+							break;
+							
+						case Constant.tempsDoubleCroche:
+							width = 0.1f;
+							break;
+					}		
+					
+					gw.fillRect( x+0.3f, -y-0.7f, width, 0.4f );
+					gw.fillRect( x+0.3f, -88.0f-(y/ratio)-0.5f, width, (y/ratio)+0.5f);
+				}
 			}
 		}
 	}
