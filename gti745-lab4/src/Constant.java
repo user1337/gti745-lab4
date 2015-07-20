@@ -18,10 +18,10 @@ public class Constant {
 
 	public static final int midiVolume = 127;
 	
-	public static final int tempsDoubleCroche = 25;
-	public static final int tempsCroche = 50;
-	public static final int tempsNoire = 100;
-	public static final int tempsBlanche = 200;
-	public static final int tempsRonde = 400;
+	public static final int SIXTEENTH_NOTE = 25;
+	public static final int EIGHTH_NOTE = 50;
+	public static final int QUARTER_NOTE = 100;
+	public static final int HALF_NOTE = 200;
+	public static final int WHOLE_NOTE = 400;
 }
 

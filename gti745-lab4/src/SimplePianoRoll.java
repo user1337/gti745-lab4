@@ -212,24 +212,24 @@ class Score {
 					
 					switch(time[x][y]) {
 						
-						case Constant.tempsRonde:
+						case Constant.WHOLE_NOTE:
 							width = 1.2f;						
 							break;		
 							
-						case Constant.tempsBlanche:
+						case Constant.HALF_NOTE:
 							width = 0.8f;
 							gw.setColor(1f, 1f, 1f);
 							break;
 							
-						case Constant.tempsNoire:
+						case Constant.QUARTER_NOTE:
 							width = 0.4f;				
 							break;
 							
-						case Constant.tempsCroche:
+						case Constant.EIGHTH_NOTE:
 							width = 0.2f;
 							break;
 							
-						case Constant.tempsDoubleCroche:
+						case Constant.SIXTEENTH_NOTE:
 							width = 0.1f;
 							break;
 					}		
@@ -273,14 +273,14 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 	public static final int CONTROL_MENU_TOTAL_DURATION = 3;
 	public static final int CONTROL_MENU_TRANSPOSE = 4;
 	
-	public static final int BEAT_MENU_BLANCHE = 0;
-	public static final int BEAT_MENU_RONDE = 1;
-	public static final int BEAT_MENU_CROCHE = 2;
-	public static final int BEAT_MENU_DOUBLE_CROCHE = 3;
+	public static final int RADIAL_MENU_HALF = 0;
+	public static final int RADIAL_MENU_WHOLE = 1;
+	public static final int RADIAL_MENU_EIGHTH = 2;
+	public static final int RADIAL_MENU_SIXTEENTH = 3;
 
 	RadialMenuWidget radialMenu = new RadialMenuWidget();
 	ControlMenuWidget controlMenu = new ControlMenuWidget();
-	RadialMenuWidget beatMenu = new RadialMenuWidget();
+	RadialMenuWidget notesMenu = new RadialMenuWidget();
 
 	int mouse_x, mouse_y, old_mouse_x, old_mouse_y;
 
@@ -310,11 +310,11 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		controlMenu.setItemLabelAndID( 5, "Total Duration", CONTROL_MENU_TOTAL_DURATION );
 		controlMenu.setItemLabelAndID( 7, "Transpose", CONTROL_MENU_TRANSPOSE );
 		
-		beatMenu.setItemLabelAndID( RadialMenuWidget.CENTRAL_ITEM, "",            RADIAL_MENU_STOP );
-		beatMenu.setItemLabelAndID( 1,                             "Croche",  BEAT_MENU_CROCHE );
-		beatMenu.setItemLabelAndID( 3,                             "Ronde",  BEAT_MENU_RONDE );
-		beatMenu.setItemLabelAndID( 5,                             "Double croche",  BEAT_MENU_DOUBLE_CROCHE );
-		beatMenu.setItemLabelAndID( 7,                             "Blanche", BEAT_MENU_BLANCHE );
+		notesMenu.setItemLabelAndID( RadialMenuWidget.CENTRAL_ITEM, "",            RADIAL_MENU_STOP );
+		notesMenu.setItemLabelAndID( 1,                             "8th",  RADIAL_MENU_EIGHTH );
+		notesMenu.setItemLabelAndID( 3,                             "Whole",  RADIAL_MENU_WHOLE );
+		notesMenu.setItemLabelAndID( 5,                             "16th",  RADIAL_MENU_SIXTEENTH );
+		notesMenu.setItemLabelAndID( 7,                             "Half", RADIAL_MENU_HALF);
 		
 		
 
@@ -452,12 +452,12 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 
 		if ( radialMenu.isVisible() )
 			radialMenu.draw( gw );
-		if( beatMenu.isVisible() )
-			beatMenu.draw( gw );
+		if( notesMenu.isVisible() )
+			notesMenu.draw( gw );
 		if ( controlMenu.isVisible() )
 			controlMenu.draw( gw );
 
-		if ( ! radialMenu.isVisible() && !beatMenu.isVisible() && ! controlMenu.isVisible() ) {
+		if ( ! radialMenu.isVisible() && !notesMenu.isVisible() && ! controlMenu.isVisible() ) {
 			// draw datatip
 			if ( midiNoteNumberOfMouseCurser >= 0 && beatOfMouseCursor >= 0 ) {
 				final int margin = 5;
@@ -535,7 +535,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		else if ( simplePianoRoll.dragMode == SimplePianoRoll.DM_ERASE_NOTES ) {
 			if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != false ) {
 				score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = false;
-				score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = Constant.tempsNoire;
+				score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = Constant.QUARTER_NOTE;
 				repaint();
 			}
 		}
@@ -564,10 +564,10 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 				return;
 		}
 		if ( SwingUtilities.isLeftMouseButton(e) ) {
-			paint( mouse_x, mouse_y, Constant.tempsNoire);
-		} else if(SwingUtilities.isRightMouseButton(e) || beatMenu.isVisible()) {
+			paint( mouse_x, mouse_y, Constant.QUARTER_NOTE);
+		} else if(SwingUtilities.isRightMouseButton(e) || notesMenu.isVisible()) {
 			
-			int returnValue = beatMenu.pressEvent( mouse_x, mouse_y );
+			int returnValue = notesMenu.pressEvent( mouse_x, mouse_y );
 			
 			if ( returnValue == CustomWidget.S_REDRAW )
 				repaint();
@@ -619,23 +619,23 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 				return;
 		}
 		
-		if ( beatMenu.isVisible() ) {
-			int returnValue = beatMenu.releaseEvent( mouse_x, mouse_y );
+		if ( notesMenu.isVisible() ) {
+			int returnValue = notesMenu.releaseEvent( mouse_x, mouse_y );
 
-			int itemID = beatMenu.getIDOfSelection();
+			int itemID = notesMenu.getIDOfSelection();
 			if ( 0 <= itemID ) {
 				switch ( itemID ) {
-					case BEAT_MENU_BLANCHE:
-						paint( beatMenu.x0, beatMenu.y0, Constant.tempsBlanche );
+					case RADIAL_MENU_HALF:
+						paint( notesMenu.x0, notesMenu.y0, Constant.HALF_NOTE );
 						break;
-					case BEAT_MENU_RONDE:
-						paint( beatMenu.x0, beatMenu.y0, Constant.tempsRonde );
+					case RADIAL_MENU_WHOLE:
+						paint( notesMenu.x0, notesMenu.y0, Constant.WHOLE_NOTE );
 						break;
-					case BEAT_MENU_CROCHE:
-						paint( beatMenu.x0, beatMenu.y0, Constant.tempsCroche );
+					case RADIAL_MENU_EIGHTH:
+						paint( notesMenu.x0, notesMenu.y0, Constant.EIGHTH_NOTE );
 						break;
-					case BEAT_MENU_DOUBLE_CROCHE:
-						paint( beatMenu.x0, beatMenu.y0, Constant.tempsDoubleCroche );
+					case RADIAL_MENU_SIXTEENTH:
+						paint( notesMenu.x0, notesMenu.y0, Constant.SIXTEENTH_NOTE );
 						break;
 				}
 			}
@@ -721,8 +721,8 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
 				return;
 		}
-		if ( beatMenu.isVisible() ) {
-			int returnValue = beatMenu.dragEvent( mouse_x, mouse_y );
+		if ( notesMenu.isVisible() ) {
+			int returnValue = notesMenu.dragEvent( mouse_x, mouse_y );
 			if ( returnValue == CustomWidget.S_REDRAW )
 				repaint();
 			if ( returnValue != CustomWidget.S_EVENT_NOT_CONSUMED )
@@ -781,7 +781,7 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 			}
 		}
 		else {
-			paint( mouse_x, mouse_y, Constant.tempsNoire);
+			paint( mouse_x, mouse_y, Constant.QUARTER_NOTE);
 		}
 	}
 
@@ -899,11 +899,11 @@ public class SimplePianoRoll implements ActionListener {
 	public static final int RM_PLAY_NOTE_UPON_ROLLOVER_IF_SPECIAL_KEY_HELD_DOWN = 2;
 	public int rolloverMode = RM_DO_NOTHING_UPON_ROLLOVER;
 	
-	String[] gammePentatonique = {"C","D","E","G","A"};
-	String[] gammemajeurDeDo = {"C","D","E","G","A", "F", "B"};
-	String[] gamme1 = {"C","D","E","F#","A", "G", "B"};
-	String[] gamme2 = {"C","D","E","G","A", "F", "A#"};
-	String[] gammeComplete = {"A","B","C","D","E", "F", "G","A#","B#","C#","D#","E#", "F#", "G#"};
+	final String[] gammePentatoniqueMajeure = {"C","D","E","G","A"};
+	final String[] gammeMajeureDo = {"C","D","E","G","A", "F", "B"};
+	final String[] gamme1 = {"C","D","E","F#","A", "G", "B"};
+	final String[] gamme2 = {"C","D","E","G","A", "F", "A#"};
+	final String[] gammeComplete = {"A","B","C","D","E", "F", "G","A#","B#","C#","D#","E#", "F#", "G#"};
 	String[] gammePermise;
 	
 	JLabel labelTempo = new JLabel("Tempo : 150 ms" );
@@ -1027,9 +1027,9 @@ public class SimplePianoRoll implements ActionListener {
 		}
 		else if ( source == scaleList ) {
 			if (scaleList.getSelectedIndex() == 1)
-				gammePermise = gammePentatonique;
+				gammePermise = gammePentatoniqueMajeure;
 			else if (scaleList.getSelectedIndex() == 0)	
-				gammePermise = gammemajeurDeDo;
+				gammePermise = gammeMajeureDo;
 			else if (scaleList.getSelectedIndex() == 2)	
 				gammePermise = gamme1;
 			else if (scaleList.getSelectedIndex() == 3)	
@@ -1049,7 +1049,7 @@ public class SimplePianoRoll implements ActionListener {
 				                 					% Score.numPitchesInOctave];
 				if (Math.random() > 0.95f && Arrays.asList((gammePermise)).contains(s)) {
 					canvas.score.grid[x][y-21] = true;
-					canvas.score.time[x][y-21] = Constant.tempsNoire;
+					canvas.score.time[x][y-21] = Constant.QUARTER_NOTE;
 				}
 					
 			}
