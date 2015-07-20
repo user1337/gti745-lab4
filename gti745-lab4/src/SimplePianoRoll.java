@@ -1050,7 +1050,21 @@ public class SimplePianoRoll implements ActionListener {
 				                 					% Score.numPitchesInOctave];
 				if (Math.random() > 0.95f && Arrays.asList((gammePermise)).contains(s)) {
 					canvas.score.grid[x][y-21] = true;
-					canvas.score.time[x][y-21] = Constant.QUARTER_NOTE;
+					
+					int note = Constant.WHOLE_NOTE;
+					double randomValue = Math.random();
+					
+					if(randomValue <= 0.2) {
+						note = Constant.SIXTEENTH_NOTE;
+					} else if (randomValue > 0.2 && randomValue <= 0.4) {
+						note = Constant.EIGHTH_NOTE;
+					} else if (randomValue > 0.4 && randomValue <= 0.8) {
+						note = Constant.QUARTER_NOTE;
+					} else if (randomValue > 0.8 && randomValue <= 0.9) {
+						note = Constant.HALF_NOTE;
+					}
+					
+					canvas.score.time[x][y-21] = note;
 				}
 					
 			}
