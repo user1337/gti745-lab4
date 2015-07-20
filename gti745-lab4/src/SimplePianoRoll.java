@@ -25,6 +25,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -764,7 +765,6 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 
 					break;
 				case CONTROL_MENU_TEMPO:
-					// Changement 3b
 					if (delta_y > 0)
 						sleepIntervalInMilliseconds += 10;
 					else if (sleepIntervalInMilliseconds > 10)
@@ -868,7 +868,6 @@ public class SimplePianoRoll implements ActionListener {
 	JMenuItem frameAllMenuItem;
 	JCheckBoxMenuItem autoFrameMenuItem;
 	JMenuItem aboutMenuItem;
-	JMenuItem generateMusicMenuItem;
 	JMenuItem saveMenuItem;
 	JMenuItem loadMenuItem;
 	
@@ -882,6 +881,8 @@ public class SimplePianoRoll implements ActionListener {
 	JRadioButton doNothingUponRolloverRadioButton;
 	JRadioButton playNoteUponRolloverRadioButton;
 	JRadioButton playNoteUponRolloverIfSpecialKeyHeldDownRadioButton;
+	
+	JButton generateButton;
 
 	public boolean isMusicPlaying = false;
 	public boolean isMusicLoopedWhenPlayed = false;
@@ -908,8 +909,8 @@ public class SimplePianoRoll implements ActionListener {
 	
 	JLabel labelTempo = new JLabel("Tempo : 150 ms" );
 	
-	String[] scaleString = { "Majeur de do", "Pentatonique", "1", "2", "Tous"};
-	JComboBox scaleList = new JComboBox(scaleString);
+	String[] gammesNoms = { "Majeure de do", "Pentatonique", "1", "2", "Tous"};
+	JComboBox gammesCombo = new JComboBox(gammesNoms);
 
 	public void setMusicPlaying( boolean flag ) {
 		isMusicPlaying = flag;
@@ -1016,7 +1017,7 @@ public class SimplePianoRoll implements ActionListener {
 		else if ( source == playNoteUponRolloverIfSpecialKeyHeldDownRadioButton ) {
 			rolloverMode = RM_PLAY_NOTE_UPON_ROLLOVER_IF_SPECIAL_KEY_HELD_DOWN;
 		}
-		else if( source == generateMusicMenuItem ) {
+		else if( source == generateButton ) {
 			generateRandomPiece();
 		}
 		else if( source == saveMenuItem ) {
@@ -1025,16 +1026,16 @@ public class SimplePianoRoll implements ActionListener {
 		else if( source == loadMenuItem ) {
 			canvas.loadMusic();
 		}
-		else if ( source == scaleList ) {
-			if (scaleList.getSelectedIndex() == 1)
+		else if ( source == gammesCombo ) {
+			if (gammesCombo.getSelectedIndex() == 1)
 				gammePermise = gammePentatoniqueMajeure;
-			else if (scaleList.getSelectedIndex() == 0)	
+			else if (gammesCombo.getSelectedIndex() == 0)	
 				gammePermise = gammeMajeureDo;
-			else if (scaleList.getSelectedIndex() == 2)	
+			else if (gammesCombo.getSelectedIndex() == 2)	
 				gammePermise = gamme1;
-			else if (scaleList.getSelectedIndex() == 3)	
+			else if (gammesCombo.getSelectedIndex() == 3)	
 				gammePermise = gamme2;
-			else if (scaleList.getSelectedIndex() == 4)	
+			else if (gammesCombo.getSelectedIndex() == 4)	
 				gammePermise = gammeComplete;
 		}
 	}
@@ -1091,10 +1092,6 @@ public class SimplePianoRoll implements ActionListener {
 				menu.add(clearMenuItem);
 
 				menu.addSeparator();
-
-				quitMenuItem = new JMenuItem("Quit");
-				quitMenuItem.addActionListener(this);
-				menu.add(quitMenuItem);
 				
 				saveMenuItem = new JMenuItem("Save");
 				saveMenuItem.addActionListener(this);
@@ -1103,12 +1100,13 @@ public class SimplePianoRoll implements ActionListener {
 				loadMenuItem = new JMenuItem("Load");
 				loadMenuItem.addActionListener(this);
 				menu.add(loadMenuItem);
-				menu.addSeparator();
 				
-				generateMusicMenuItem = new JMenuItem("Generate");
-				generateMusicMenuItem.addActionListener(this);
-				menu.add(generateMusicMenuItem);
 				menu.addSeparator();
+
+				quitMenuItem = new JMenuItem("Quit");
+				quitMenuItem.addActionListener(this);
+				menu.add(quitMenuItem);
+				
 			menuBar.add(menu);
 			menu = new JMenu("View");
 				showToolsMenuItem = new JCheckBoxMenuItem("Show Options");
@@ -1197,10 +1195,14 @@ public class SimplePianoRoll implements ActionListener {
 			if ( rolloverMode == RM_PLAY_NOTE_UPON_ROLLOVER ) playNoteUponRolloverRadioButton.setSelected(true);
 			toolPanel.add( playNoteUponRolloverRadioButton );
 			rolloverModeButtonGroup.add( playNoteUponRolloverRadioButton );
+			
+			generateButton = new JButton("Generate");
+			
 
 			playNoteUponRolloverIfSpecialKeyHeldDownRadioButton = new JRadioButton( "Play Pitch if Ctrl down" );
 			playNoteUponRolloverIfSpecialKeyHeldDownRadioButton.setAlignmentX( Component.LEFT_ALIGNMENT );
 			playNoteUponRolloverIfSpecialKeyHeldDownRadioButton.addActionListener(this);
+			
 			if ( rolloverMode == RM_PLAY_NOTE_UPON_ROLLOVER_IF_SPECIAL_KEY_HELD_DOWN )
 				playNoteUponRolloverIfSpecialKeyHeldDownRadioButton.setSelected(true);
 			toolPanel.add( playNoteUponRolloverIfSpecialKeyHeldDownRadioButton );
@@ -1208,9 +1210,12 @@ public class SimplePianoRoll implements ActionListener {
 			
 			comboPanel.add( labelTempo );
 			
-			scaleList.addActionListener(this);			
-			scaleList.setSelectedIndex(4);
-			comboPanel.add(scaleList);
+			gammesCombo.addActionListener(this);			
+			gammesCombo.setSelectedIndex(4);
+			comboPanel.add(gammesCombo);
+			
+			generateButton.addActionListener(this);
+			comboPanel.add(generateButton);
 
 		frame.pack();
 		frame.setVisible( true );
