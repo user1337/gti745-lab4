@@ -212,10 +212,15 @@ class Score {
 					float ratio  = 3.5f;
 					gw.setColor(0, 0, 0);
 					
+					float red = (x/numBeats) * 0.1f;
+					float green = (float) Math.random();
+					float blue = (float) Math.random();
+					
+					
 					switch(time[x][y]) {
 						
 						case Constant.WHOLE_NOTE:
-							width = 1.2f;						
+							width = 1.2f;
 							break;		
 							
 						case Constant.HALF_NOTE:
@@ -224,7 +229,7 @@ class Score {
 							break;
 							
 						case Constant.QUARTER_NOTE:
-							width = 0.4f;				
+							width = 0.4f;
 							break;
 							
 						case Constant.EIGHTH_NOTE:
@@ -240,6 +245,7 @@ class Score {
 					
 					if(visualfx[x][y]) {
 						visualfx[x][y] = false;
+						gw.setColor(red, green, blue);
 						gw.fillRect( x+0.3f, -88.0f-(y/ratio)-0.5f, width, (y/ratio)+0.5f);
 					}
 				}
