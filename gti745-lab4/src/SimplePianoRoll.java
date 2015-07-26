@@ -83,6 +83,7 @@ class Score {
 	public static final int midiNoteNumberOfLowestPitch = 21;
 	public int numBeats = 128;
 	public boolean [][] grid;
+	public boolean [][] visualfx;
 	public int [][] time;
 
 	public static final int numPitchesInOctave = 12;
@@ -92,6 +93,7 @@ class Score {
 
 	public Score() {
 		grid = new boolean[ numBeats ][ numPitches ];
+		visualfx = new boolean[ numBeats ][ numPitches ];
 		time = new int[ numBeats ][ numPitches ];
 
 		namesOfPitchClasses = new String[ numPitchesInOctave ];
@@ -205,7 +207,6 @@ class Score {
 		gw.setColor( 0, 0, 0 );
 		for ( int y = 0; y < numPitches; ++y ) {
 			for ( int x = 0; x < numBeats; ++x ) {
-				// Effet visuel
 				if ( grid[x][y] ) {
 					float width = 0.4f;
 					float ratio  = 3.5f;
@@ -236,7 +237,11 @@ class Score {
 					}		
 					
 					gw.fillRect( x+0.3f, -y-0.7f, width, 0.4f );
-					gw.fillRect( x+0.3f, -88.0f-(y/ratio)-0.5f, width, (y/ratio)+0.5f);
+					
+					if(visualfx[x][y]) {
+						visualfx[x][y] = false;
+						gw.fillRect( x+0.3f, -88.0f-(y/ratio)-0.5f, width, (y/ratio)+0.5f);
+					}
 				}
 			}
 		}
@@ -821,13 +826,15 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 						currentBeat = 0;
 					if ( Constant.USE_SOUND ) {
 						for ( int i = 0; i < score.numPitches; ++i ) {
-							if ( score.grid[currentBeat][i] )
+							if ( score.grid[currentBeat][i] ) {
+								score.visualfx[currentBeat][i] = true;
 								simplePianoRoll.midiChannels[0].noteOn( i+score.midiNoteNumberOfLowestPitch, Constant.midiVolume );
+							}
+								
 						}
 					}
 					
 					if (controlMenu.isVisible() && controlMenu.getIDOfSelection() == CONTROL_MENU_TEMPO  )
-						//simplePianoRoll.midiChannels[0].noteOn(50,250);
 						simplePianoRoll.midiChannels[15].noteOn(28,100);
 				}
 				repaint();
