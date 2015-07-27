@@ -529,26 +529,28 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 		}
 
 		if ( beatOfMouseCursor >= 0 && midiNoteNumberOfMouseCurser >= 0 ) {
-			if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != true ) 
-			{
-				String s = score.namesOfPitchClasses[
-				                 					( midiNoteNumberOfMouseCurser - score.midiNoteNumberOfLowestPitch + score.pitchClassOfLowestPitch )
-				                 					% score.numPitchesInOctave
-				                 				];
-				if (Arrays.asList((simplePianoRoll.gammePermise)).contains(s))
+			if ( simplePianoRoll.dragMode == SimplePianoRoll.DM_DRAW_NOTES ) {
+				if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != true ) 
 				{
-					score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = true;
-					score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = beat;
+					String s = score.namesOfPitchClasses[
+					                 					( midiNoteNumberOfMouseCurser - score.midiNoteNumberOfLowestPitch + score.pitchClassOfLowestPitch )
+					                 					% score.numPitchesInOctave
+					                 				];
+					if (Arrays.asList((simplePianoRoll.gammePermise)).contains(s))
+					{
+						score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = true;
+						score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = beat;
+						repaint();
+					}
+					
+				}
+			}
+			else if ( simplePianoRoll.dragMode == SimplePianoRoll.DM_ERASE_NOTES ) {
+				if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != false ) {
+					score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = false;
+					score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = Constant.QUARTER_NOTE;
 					repaint();
 				}
-				
-			}
-		}
-		else if ( simplePianoRoll.dragMode == SimplePianoRoll.DM_ERASE_NOTES ) {
-			if ( score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] != false ) {
-				score.grid[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = false;
-				score.time[beatOfMouseCursor][midiNoteNumberOfMouseCurser-score.midiNoteNumberOfLowestPitch] = Constant.QUARTER_NOTE;
-				repaint();
 			}
 		}
 	}
@@ -832,9 +834,10 @@ class MyCanvas extends JPanel implements KeyListener, MouseListener, MouseMotion
 						currentBeat = 0;
 					if ( Constant.USE_SOUND ) {
 						for ( int i = 0; i < score.numPitches; ++i ) {
-							if ( score.grid[currentBeat][i] ) {
-								score.visualfx[currentBeat][i] = true;
-								simplePianoRoll.midiChannels[0].noteOn( i+score.midiNoteNumberOfLowestPitch, Constant.midiVolume );
+							if ( score.grid[currentBeat][i] ) {				
+								simplePianoRoll.midiChannels[0].noteOn( i+score.midiNoteNumberOfLowestPitch, Constant.midiVolume );						
+								Thread.sleep(score.time[currentBeat][i]);
+								simplePianoRoll.midiChannels[0].noteOff( i+score.midiNoteNumberOfLowestPitch, Constant.midiVolume );	
 							}
 								
 						}
